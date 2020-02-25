@@ -1,7 +1,7 @@
 const path = require('path');
 const autoprefixer = require('autoprefixer');
 const pxtorem = require('postcss-pxtorem');
-
+const vConsolePlugin = require('vconsole-webpack-plugin')
 function resolve(dir) {
   return path.join(__dirname, './', dir)
 }
@@ -35,6 +35,16 @@ module.exports = {
   },
   // 配置别名
   chainWebpack: (config) => {
+    //生产环境去掉vconsole调试器
+    let envFlag = process.env.NODE_ENV != 'production'
+    let pluginsDev = [
+      new vConsolePlugin({
+        filter: [],
+        enable: envFlag
+      })
+    ]
+
+    config.plugins = [...config.plugins,...pluginsDev]
     config.resolve.alias
       .set('@', resolve('src'))
       .set('assets', resolve('src/assets'))

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import config from '../config/index' // 路径配置
+import config from '../configs/index' // 路径配置
 
 // 创建axios 实例
 const service = axios.create({

@@ -1,6 +1,5 @@
 const path = require('path');
 const autoprefixer = require('autoprefixer');
-
 const pxtorem = require('postcss-pxtorem');
 
 function resolve(dir) {
@@ -8,18 +7,29 @@ function resolve(dir) {
 }
 
 module.exports = {
-  assetsDir: 'assets',
   publicPath: './',
-  lintOnSave: true, // 是否开启编译时是否不符合eslint提示
+  filenameHashing: true,
+  outputDir: 'dist',
+  assetsDir: 'static',
+  lintOnSave: false,
+  productionSourceMap: false,
   devServer: {
     host: '0.0.0.0',
     port: 8000,
     https: false,
     hotOnly: false,
+    overlay: {
+      warnings: false,
+      errors: true
+    },
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8080',
-        changeOrigin: true
+        target: 'https://dev.inspurhealth.com',
+        secure: true,
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api': '/api'
+        }
       }
     }
   },
@@ -46,16 +56,17 @@ module.exports = {
             rootValue: 37.5,
             propList: ['*']
           })
-        ]},
-        sass: {
-          // @/ is an alias to src/
-          // so this assumes you have a file named `src/variables.scss`
-          prependData: `
+        ]
+      },
+      sass: {
+        // @/ is an alias to src/
+        // so this assumes you have a file named `src/variables.scss`
+        prependData: `
                @import "@/assets/css/variable.scss"; 
                @import "@/assets/css/common.scss";
                @import "@/assets/css/mixin.scss";
               `
-        }
       }
-    },
-  }
+    }
+  },
+}

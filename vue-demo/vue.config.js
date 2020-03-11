@@ -2,10 +2,28 @@ const path = require('path');
 const autoprefixer = require('autoprefixer');
 const pxtorem = require('postcss-pxtorem');
 const vConsolePlugin = require('vconsole-webpack-plugin')
+const CompressionWebpackPlugin = require('compression-webpack-plugin')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 function resolve(dir) {
   return path.join(__dirname, './', dir)
 }
-
+// 压缩js
+const compress = new CompressionWebpackPlugin(
+  {
+    filename: info => {
+      return `${info.path}.gz${info.query}`
+    },
+    algorithm: 'gzip',
+    threshold: 10240,
+    test: new RegExp(
+      '\\.(' +
+      ['js'].join('|') +
+      ')$'
+    ),
+    minRatio: 0.8,
+    deleteOriginalAssets: false
+  }
+)
 module.exports = {
   publicPath: './',
   filenameHashing: true,
@@ -35,16 +53,16 @@ module.exports = {
   },
   // 配置别名
   chainWebpack: (config) => {
-    //生产环境去掉vconsole调试器
-    let envFlag = process.env.NODE_ENV != 'production'
-    let pluginsDev = [
-      new vConsolePlugin({
-        filter: [],
-        enable: envFlag
-      })
-    ]
+    config.when(process.env.NODE_ENV != 'production',
+      config => {
+        config.plugin('vconsole').use(vConsolePlugin, [{enable: true}]).end()
+      }
+    )
+    config.optimization.minimize(true);
+    config.optimization.splitChunks({
+      chunks: 'all'
+    })
 
-    config.plugins = [...config.plugins,...pluginsDev]
     config.resolve.alias
       .set('@', resolve('src'))
       .set('assets', resolve('src/assets'))
@@ -54,6 +72,10 @@ module.exports = {
       .set('static', resolve('src/static'))
       .set('store', resolve('src/store'))
       .set('views', resolve('src/views'))
+  },
+  // 压缩代码
+  configureWebpack: {
+    plugins: [compress]
   },
   css: {
     extract: true,

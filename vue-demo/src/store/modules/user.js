@@ -1,4 +1,4 @@
-import api from '@/api/user'
+import {getUserInfo} from "../../api/user";
 
 const user = {
   namespaced: true,
@@ -23,7 +23,7 @@ const user = {
     // 获取用户信息
     GetUserInfo ({ commit }) {
       return new Promise((resolve, reject) => {
-        api.getUserInfo().then(res => {
+        getUserInfo().then(res => {
           // console.log(res)
           if (res.code === 200) {
             commit('SET_NAME', res.data.name)

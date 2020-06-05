@@ -4,26 +4,11 @@ const pxtorem = require('postcss-pxtorem');
 const vConsolePlugin = require('vconsole-webpack-plugin')
 const CompressionWebpackPlugin = require('compression-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+
 function resolve(dir) {
   return path.join(__dirname, './', dir)
 }
-// 压缩js
-const compress = new CompressionWebpackPlugin(
-  {
-    filename: info => {
-      return `${info.path}.gz${info.query}`
-    },
-    algorithm: 'gzip',
-    threshold: 10240,
-    test: new RegExp(
-      '\\.(' +
-      ['js'].join('|') +
-      ')$'
-    ),
-    minRatio: 0.8,
-    deleteOriginalAssets: false
-  }
-)
+
 module.exports = {
   publicPath: './',
   filenameHashing: true,
@@ -42,7 +27,7 @@ module.exports = {
     },
     proxy: {
       '/api': {
-        target: 'https://dev.inspurhealth.com',
+        target: process.env.VUE_APP_API_ROOT,
         secure: true,
         changeOrigin: true,
         pathRewrite: {
@@ -51,18 +36,12 @@ module.exports = {
       }
     }
   },
-  // 配置别名
   chainWebpack: (config) => {
-    config.when(process.env.NODE_ENV != 'production',
-      config => {
-        config.plugin('vconsole').use(vConsolePlugin, [{enable: true}]).end()
-      }
-    )
+    config.plugins.delete('prefetch')
     config.optimization.minimize(true);
     config.optimization.splitChunks({
       chunks: 'all'
     })
-
     config.resolve.alias
       .set('@', resolve('src'))
       .set('assets', resolve('src/assets'))
@@ -72,10 +51,47 @@ module.exports = {
       .set('static', resolve('src/static'))
       .set('store', resolve('src/store'))
       .set('views', resolve('src/views'))
-  },
-  // 压缩代码
-  configureWebpack: {
-    plugins: [compress]
+    config.when(process.env.NODE_ENV != 'production',
+      config => {
+        config.plugin('vconsole').use(vConsolePlugin, [{enable: true}]).end()
+      }
+    )
+    config.when(process.env.ENV === 'production',
+      config => {
+        config.plugin('UglifyJsPlugin')
+          .use(UglifyJsPlugin, [
+            {
+              uglifyOptions: {
+                warnings: false,
+                compress: {
+                  drop_debugger: true,
+                  drop_console: true
+                },
+                output: {
+                  comments: false,
+                  beautify: false
+                }
+              },
+              sourceMap: false,
+              parallel: true//使用多进程并行运行来提高构建速度。默认并发运行数：os.cpus().length - 1。
+            }
+          ])
+          .end()
+        config.plugin('gzip')
+          .use(CompressionWebpackPlugin, [
+            {
+              filename: '[path].gz[query]',
+              algorithm: 'gzip',
+              test: /\.(js|css)$/,
+              threshold: 10240,
+              minRatio: 0.8
+            }
+          ])
+          .end()
+      }
+    )
+
+
   },
   css: {
     extract: true,

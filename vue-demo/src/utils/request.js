@@ -1,9 +1,9 @@
 import axios from 'axios'
-import config from '../configs/index' // 路径配置
+
 
 // 创建axios 实例
 const service = axios.create({
-  baseURL: config.baseURL, // api的base_url
+  baseURL:process.env.VUE_APP_BASE_API, // api的base_url
   timeout: 10000 // 请求超时时间
 })
 

@@ -3,7 +3,7 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
-export const router = new Router({
+const router = new Router({
   routes: [
     {
       path: '/index',
@@ -12,3 +12,12 @@ export const router = new Router({
     }
   ]
 })
+router.beforeEach(async (to, from, next) => {
+  try {
+//条件
+    next()
+  } catch (e) {
+    next()
+  }
+})
+export default router

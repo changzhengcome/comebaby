@@ -6,9 +6,6 @@
 </template>
 
 <script>
-
-  import {nearByHospitalList} from "../../api/user";
-
   export default {
     name: "index",
     created() {
